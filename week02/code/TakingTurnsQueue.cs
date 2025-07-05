@@ -9,21 +9,37 @@
 /// </summary>
 public class TakingTurnsQueue
 {
-    private readonly PersonQueue _people = new();
+    private class QueueEntry
+    {
+        public string Name { get; }
+        public int Turns { get; set; }
 
-    public int Length => _people.Length;
+        public QueueEntry(string name, int turns)
+        {
+            Name = name;
+            Turns = turns;
+        }
 
-    /// <summary>
+        public Person ToPerson()
+        {
+            return new Person(Name, Turns);
+        }
+    }
+
+    private readonly Queue<QueueEntry> _queue = new();
+
+    public int Length => _queue.Count;
+    
+    // <summary>
     /// Add new people to the queue with a name and number of turns
     /// </summary>
     /// <param name="name">Name of the person</param>
     /// <param name="turns">Number of turns remaining</param>
     public void AddPerson(string name, int turns)
     {
-        var person = new Person(name, turns);
-        _people.Enqueue(person);
+        _queue.Enqueue(new QueueEntry(name, turns));
     }
-
+    
     /// <summary>
     /// Get the next person in the queue and return them. The person should
     /// go to the back of the queue again unless the turns variable shows that they 
@@ -33,25 +49,30 @@ public class TakingTurnsQueue
     /// </summary>
     public Person GetNextPerson()
     {
-        if (_people.IsEmpty())
+        if (_queue.Count == 0)
         {
             throw new InvalidOperationException("No one in the queue.");
         }
-        else
-        {
-            Person person = _people.Dequeue();
-            if (person.Turns > 1)
-            {
-                person.Turns -= 1;
-                _people.Enqueue(person);
-            }
 
-            return person;
+        var entry = _queue.Dequeue();
+        var result = new Person(entry.Name, entry.Turns); // return copy for comparison
+
+        if (entry.Turns <= 0)
+        {
+            // Infinite turns — re-enqueue unchanged
+            _queue.Enqueue(entry);
         }
+        else if (entry.Turns > 1)
+        {
+            entry.Turns -= 1;
+            _queue.Enqueue(entry);
+        }
+
+        return result;
     }
 
     public override string ToString()
     {
-        return _people.ToString();
+        return string.Join(", ", _queue.Select(e => $"{e.Name}({e.Turns})"));
     }
 }
