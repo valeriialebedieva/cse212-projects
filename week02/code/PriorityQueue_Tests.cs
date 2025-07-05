@@ -81,7 +81,7 @@ public class PriorityQueueTests
     public void TestPriorityQueue_EmptyQueue()
     {
         var priorityQueue = new PriorityQueue();
-        var expectedMessage = "Cannot dequeue from an empty queue.";
+        var expectedMessage = "The queue is empty.";
 
         var exception = Assert.ThrowsException<InvalidOperationException>(
             () => priorityQueue.Dequeue()
