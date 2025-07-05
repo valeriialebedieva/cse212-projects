@@ -1,4 +1,7 @@
-﻿public class PriorityQueue
+﻿using System;
+using System.Collections.Generic;
+
+public class PriorityQueue
 {
     private List<PriorityItem> _queue = new();
 
@@ -22,19 +25,33 @@
             throw new InvalidOperationException("The queue is empty.");
         }
 
-        // Find the index of the item with the highest priority to remove
-        var highPriorityIndex = 0;
-        for (int index = 1; index < _queue.Count; index++) // Fixed loop bound
+        // Initialize with first element
+        int highestPriorityIndex = 0;
+        int highestPriority = _queue[0].Priority;
+
+        // Find item with highest priority
+        for (int i = 1; i < _queue.Count; i++)
         {
-            // Changed to strictly greater than to maintain FIFO for equal priorities
-            if (_queue[index].Priority > _queue[highPriorityIndex].Priority)
-                highPriorityIndex = index;
+            // Current element has higher priority
+            if (_queue[i].Priority > highestPriority)
+            {
+                highestPriorityIndex = i;
+                highestPriority = _queue[i].Priority;
+            }
+            // If equal priority, take the one that was added first (FIFO for same priority)
+            else if (_queue[i].Priority == highestPriority && i < highestPriorityIndex)
+            {
+                highestPriorityIndex = i;
+            }
         }
 
-        // Remove and return the item with the highest priority
-        var value = _queue[highPriorityIndex].Value;
-        _queue.RemoveAt(highPriorityIndex); // Added removal of the item
-        return value;
+        // Store the value to return
+        string valueToReturn = _queue[highestPriorityIndex].Value;
+
+        // Remove the item
+        _queue.RemoveAt(highestPriorityIndex);
+
+        return valueToReturn;
     }
 
     public override string ToString()
@@ -45,5 +62,17 @@
 
 internal class PriorityItem
 {
-    // ...existing code...
+    internal string Value { get; set; }
+    internal int Priority { get; set; }
+
+    internal PriorityItem(string value, int priority)
+    {
+        Value = value;
+        Priority = priority;
+    }
+
+    public override string ToString()
+    {
+        return $"{Value} (Pri:{Priority})";
+    }
 }
