@@ -19,10 +19,48 @@ public static class SetsAndMaps
     /// that there were no duplicates) and therefore should not be returned.
     /// </summary>
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
-    public static string[] FindPairs(string[] words)
+     public static string[] FindPairs(string[] words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        if (words == null)
+            throw new ArgumentNullException(nameof(words), "Input array cannot be null.");
+
+        // Initialize a HashSet for O(1) lookups and handle duplicates efficiently
+        var wordSet = new HashSet<string>(words.Length);
+
+        // Validate input and populate the HashSet
+        foreach (var word in words)
+        {
+            if (word == null)
+                throw new ArgumentException("Words in the array cannot be null.", nameof(words));
+
+            if (word.Length != 2)
+                throw new ArgumentException("All words must be exactly two characters long.", nameof(words));
+
+            wordSet.Add(word);
+        }
+
+        // List to hold the final paired words
+        var pairedWords = new List<string>();
+
+        // Iterate through each unique word to find its reversed counterpart
+        foreach (var word in wordSet)
+        {
+            // Compute the reversed word using direct character access for efficiency
+            string reversedWord;
+            reversedWord = $"{word[1]}{word[0]}";
+
+            // Check if the reversed word exists in the set and avoid self-pairing
+            if (word != reversedWord && wordSet.Contains(reversedWord))
+            {
+                // To prevent duplicate pairs (e.g., "ab & ba" and "ba & ab"), enforce a consistent order
+                if (string.Compare(word, reversedWord, StringComparison.Ordinal) < 0)
+                {
+                    pairedWords.Add($"{reversedWord} & {word}");
+                }
+            }
+        }
+
+        return pairedWords.ToArray();
     }
 
     /// <summary>
@@ -39,14 +77,30 @@ public static class SetsAndMaps
     public static Dictionary<string, int> SummarizeDegrees(string filename)
     {
         var degrees = new Dictionary<string, int>();
+        
         foreach (var line in File.ReadLines(filename))
         {
+            // Split the line into fields using comma as delimiter
             var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+            
+            // Get the degree from the 4th column (index 3)
+            // Trim any whitespace to ensure consistent keys
+            var degree = fields[3].Trim();
+            
+            // If the degree is already in the dictionary, increment its count
+            // Otherwise, add it with an initial count of 1
+            if (degrees.ContainsKey(degree))
+            {
+                degrees[degree]++;
+            }
+            else
+            {
+                degrees[degree] = 1;
+            }
         }
 
         return degrees;
-    }
+    }  
 
     /// <summary>
     /// Determine if 'word1' and 'word2' are anagrams.  An anagram
@@ -66,8 +120,39 @@ public static class SetsAndMaps
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
     {
-        // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        // Remove spaces and convert to lowercase for case-insensitive comparison
+        word1 = word1.Replace(" ", "").ToLower();
+        word2 = word2.Replace(" ", "").ToLower();
+
+        // Quick check - if lengths are different, they can't be anagrams
+        if (word1.Length != word2.Length)
+            return false;
+
+        // Create dictionary to store character frequencies for word1
+        var letterCount = new Dictionary<char, int>();
+
+        // Count frequencies of letters in word1
+        foreach (char c in word1)
+        {
+            if (letterCount.ContainsKey(c))
+                letterCount[c]++;
+            else
+                letterCount[c] = 1;
+        }
+
+        // Check letters in word2 against the frequencies in word1
+        foreach (char c in word2)
+        {
+            // If letter doesn't exist in word1 or count becomes negative,
+            // words are not anagrams
+            if (!letterCount.ContainsKey(c) || letterCount[c] == 0)
+                return false;
+                
+            letterCount[c]--;
+        }
+
+        // All letters matched with correct frequencies
+        return true;
     }
 
     /// <summary>
@@ -101,6 +186,8 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        return [];
+        return featureCollection.Features
+        .Select(f => $"{f.Properties.Place} - Mag {f.Properties.Magnitude}")
+        .ToArray();
     }
 }
